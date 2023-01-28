@@ -8,6 +8,8 @@ from numpy import random
 
 from ..builder import PIPELINES
 
+import torch
+from torchvision import transforms
 
 @PIPELINES.register_module()
 class ResizeToMultiple(object):
@@ -1006,7 +1008,8 @@ class PASTA:
         if "img_fields" in results:
             assert results["img_fields"] == ["img"], "Only single img_fields is allowed"
         img = results["img"]
-        img = transforms.ToTensor()(img)
+        # print(img.shape)
+        img = transforms.ToTensor()(img.copy())
         fft_src = torch.fft.fftn(img, dim=[-2, -1])
         amp_src, pha_src = torch.abs(fft_src), torch.angle(fft_src)
 
