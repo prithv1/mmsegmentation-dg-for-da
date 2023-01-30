@@ -5,7 +5,9 @@ _base_ = [
 ]
 
 # Storing Directory
-work_dir='/coc/scratch/prithvi/dg_for_da/segmentation_dg/deeplabv3plus_r50-d8_512x1024_40k_GTAV_pasta_pd'
+#Prithvi: /coc/scratch/prithvi/dg_for_da/segmentation_dg/deeplabv3plus_r50-d8_512x1024_40k_GTAV_vanilla
+#Bharat: /srv/hoffman-lab/share4/bgoyal7/mmseg/mmsegCheckpoints
+work_dir='/srv/hoffman-lab/share4/bgoyal7/mmseg/mmsegCheckpoints'
 
 # Data Pipeline Settings
 img_norm_cfg = dict(
