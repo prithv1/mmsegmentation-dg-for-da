@@ -11,8 +11,7 @@
 source ~/.bashrc
 
 export MASTER_ADDR=$(srun --ntasks=1 hostname 2>&1 | tail -n1)
-
-conda init bash
+source /srv/flash1/testnvme/bgoyal77/miniconda3/etc/profile.d/conda.sh
 conda activate mmseg
 cd ~/mmsegmentation-dg-for-da/
 
