@@ -16,4 +16,4 @@ conda activate mmseg
 cd ~/mmsegmentation-dg-for-da/
 
 set -x
-srun ./tools/dist_train.sh configs/deeplabv3plus/deeplabv3plus_r50-d8_512x1024_40k_gtav.py 4
+srun ./tools/dist_train.sh configs/deeplabv3plus/deeplabv3plus_r50-d8_512x1024_40k_gtav_pd.py 4
