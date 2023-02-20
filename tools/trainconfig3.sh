@@ -1,19 +1,34 @@
 #!/bin/bash
-#SBATCH --job-name=deeplabtrain
-#SBATCH -o /srv/hoffman-lab/share4/bgoyal7/mmseg/mmsegCheckpoints/deepLabPasta.o
-#SBATCH --error=logs4g-4s-4w.err
+#SBATCH --job-name=mapillaryCheck
+#SBATCH -o /srv/hoffman-lab/share4/bgoyal7/mmseg/mapillaryFinal.o
+#SBATCH --error=/srv/hoffman-lab/share4/bgoyal7/mmseg/mapillaryFinal.err
 #SBATCH --gres=gpu:4
-#SBATCH -c 1
+#SBATCH -c 16
 #SBATCH --partition=short
 #SBATCH -p overcap
 #SBATCH -A overcap
 
-source ~/.bashrc
 
+export PYTHONUNBUFFERED=TRUE
 export MASTER_ADDR=$(srun --ntasks=1 hostname 2>&1 | tail -n1)
+
 source /srv/flash1/testnvme/bgoyal77/miniconda3/etc/profile.d/conda.sh
+
 conda activate mmseg
-cd ~/mmsegmentation-dg-for-da/
+
+
+
+
+# source /srv/flash1/testnvme/bgoyal77/miniconda3/etc/profile.d/conda.sh
 
 set -x
-srun ./tools/dist_train.sh configs/deeplabv3plus/deeplabv3plus_r50-d8_512x1024_40k_gtav_pasta_pd.py 4
+#python tools/test.py ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth --eval mIoU
+
+
+srun ~/mmsegmentation-dg-for-da/tools/dist_test.sh ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth 4 --eval mIoU
+
+
+
+
+
+#!/bin/bash

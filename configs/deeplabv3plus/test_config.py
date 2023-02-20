@@ -132,10 +132,10 @@ data = dict(
                 ])
         ]),
     test=dict(
-        type='MapillaryDataset',
-        data_root='/srv/share4/datasets/mapillary-mmseg',
-        img_dir='img_dir/val',
-        ann_dir='ann_dir/val',
+        type= 'MapillaryDataset',
+        data_root= '/srv/datasets/mapillary/validation', 
+        img_dir= 'images',
+        ann_dir= 'labels',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -168,6 +168,6 @@ lr_config = dict(policy='poly', power=0.9, min_lr=0.0001, by_epoch=False)
 runner = dict(type='IterBasedRunner', max_iters=40000)
 checkpoint_config = dict(by_epoch=False, interval=4000)
 evaluation = dict(interval=4000, metric='mIoU', pre_eval=True)
-work_dir = '/coc/scratch/prithvi/dg_for_da/segmentation_dg/deeplabv3plus_r50-d8_512x1024_40k_GTAV_pasta__a6k2b025_bef_resize_pd'
+work_dir = '/srv/hoffman-lab/share4/bgoyal7/junk'
 gpu_ids = range(0, 4)
 auto_resume = False
