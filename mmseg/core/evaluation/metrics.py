@@ -4,6 +4,7 @@ from collections import OrderedDict
 import mmcv
 import numpy as np
 import torch
+from torchmetrics.functional.classification import multiclass_calibration_error
 
 
 def f_score(precision, recall, beta=1):
@@ -253,6 +254,20 @@ def mean_fscore(results,
         beta=beta)
     return fscore_result
 
+def expected_calibration_error(gt_seg_maps, logits, nbins = 15):#Check if batches are being passed in, if so modify denominator
+    flattened_logits = torch.cat([logit.flatten(start_dim=1).T for logit in logits], dim=0)
+    flattened_gt = np.concatenate(gt_seg_maps)
+    ret = []
+    unique_categories = np.unique(flattened_gt)
+    for class_ind in range(19):
+        if class_ind not in unique_categories: 
+            ret.append(float('nan'))
+            continue
+        gt_copy = flattened_gt.copy()
+        gt_copy[gt_copy != class_ind] = -1 
+        gt_copy = torch.from_numpy(gt_copy).to('cuda')
+        ret.append(multiclass_calibration_error(flattened_logits, gt_copy, num_classes = 19, n_bins = nbins, ignore_index=-1).item()/100)
+    return np.array(ret).reshape((1, 19))
 
 def eval_metrics(results,
                  gt_seg_maps,

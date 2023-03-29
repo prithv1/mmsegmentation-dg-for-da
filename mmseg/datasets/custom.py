@@ -5,11 +5,12 @@ from collections import OrderedDict
 
 import mmcv
 import numpy as np
+
 from mmcv.utils import print_log
 from prettytable import PrettyTable
 from torch.utils.data import Dataset
 
-from mmseg.core import eval_metrics, intersect_and_union, pre_eval_to_metrics
+from mmseg.core import eval_metrics, intersect_and_union, pre_eval_to_metrics, expected_calibration_error
 from mmseg.utils import get_root_logger
 from .builder import DATASETS
 from .pipelines import Compose, LoadAnnotations
@@ -390,6 +391,7 @@ class CustomDataset(Dataset):
                  metric='mIoU',
                  logger=None,
                  gt_seg_maps=None,
+                 ece_vals=None,
                  **kwargs):
         """Evaluate the dataset.
 
@@ -398,7 +400,7 @@ class CustomDataset(Dataset):
                  results or predict segmentation map for computing evaluation
                  metric.
             metric (str | list[str]): Metrics to be evaluated. 'mIoU',
-                'mDice' and 'mFscore' are supported.
+                'mDice','ECE' and 'mFscore' are supported.
             logger (logging.Logger | None | str): Logger used for printing
                 related information during evaluation. Default: None.
             gt_seg_maps (generator[ndarray]): Custom gt seg maps as input,
@@ -409,12 +411,17 @@ class CustomDataset(Dataset):
         """
         if isinstance(metric, str):
             metric = [metric]
-        allowed_metrics = ['mIoU', 'mDice', 'mFscore']
+        allowed_metrics = ['mIoU', 'mDice', 'mFscore', 'ECE']
         if not set(metric).issubset(set(allowed_metrics)):
             raise KeyError('metric {} is not supported'.format(metric))
-
+        if ece_vals is None and 'ECE' in metric: 
+            raise KeyError('ECE metric is not being calculated during the forward pass'.format(metric))
         eval_results = {}
         # test a list of files
+        calculateECE = 'ECE' in metric
+        if calculateECE:
+            metric.remove('ECE')
+            
         if mmcv.is_list_of(results, np.ndarray) or mmcv.is_list_of(
                 results, str):
             if gt_seg_maps is None:
@@ -431,8 +438,10 @@ class CustomDataset(Dataset):
         # test a list of pre_eval_results
         else:
             ret_metrics = pre_eval_to_metrics(results, metric)
-
         # Because dataset.CLASSES is required for per-eval.
+        if calculateECE: 
+            ece_vals = np.concatenate(ece_vals, axis = 0)
+            ret_metrics['ECE'] = np.nanmean(ece_vals, axis=0) #The denominator.
         if self.CLASSES is None:
             class_names = tuple(range(num_classes))
         else:
@@ -469,7 +478,6 @@ class CustomDataset(Dataset):
         print_log('\n' + class_table_data.get_string(), logger=logger)
         print_log('Summary:', logger)
         print_log('\n' + summary_table_data.get_string(), logger=logger)
-
         # each metric dict
         for key, value in ret_metrics_summary.items():
             if key == 'aAcc':

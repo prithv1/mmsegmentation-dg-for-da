@@ -22,8 +22,8 @@ conda activate mmseg
 # source /srv/flash1/testnvme/bgoyal77/miniconda3/etc/profile.d/conda.sh
 
 set -x
-#python tools/test.py ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth --eval mIoU
-
+#python ~/mmsegmentation-dg-for-da/tools/test.py ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth --eval mIoU --launcher pytorch
+#~/mmsegmentation-dg-for-da/tools/dist_test.sh ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth 1 --eval mIoU ECE
 
 srun ~/mmsegmentation-dg-for-da/tools/dist_test.sh ~/mmsegmentation-dg-for-da/configs/deeplabv3plus/test_config.py $COC/latest.pth 4 --eval mIoU
 

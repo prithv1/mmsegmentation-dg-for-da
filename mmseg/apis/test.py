@@ -9,6 +9,7 @@ import torch
 from mmcv.engine import collect_results_cpu, collect_results_gpu
 from mmcv.image import tensor2imgs
 from mmcv.runner import get_dist_info
+from mmseg.core import expected_calibration_error
 
 
 def np2tmp(array, temp_file_name=None, tmpdir=None):
@@ -188,6 +189,7 @@ def multi_gpu_test(model,
 
     model.eval()
     results = []
+    ece_vals = []
     dataset = data_loader.dataset
     # The pipeline about how the data_loader retrieval samples from dataset:
     # sampler -> batch_sampler -> indices
@@ -202,11 +204,10 @@ def multi_gpu_test(model,
     rank, world_size = get_dist_info()
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
-
     for batch_indices, data in zip(loader_indices, data_loader):
         with torch.no_grad():
-            result = model(return_loss=False, rescale=True, **data)
-
+            result,logit = model(return_loss=False, rescale=True, **data)
+        ece_vals.append(expected_calibration_error(dataset.get_gt_seg_map_by_idx(batch_indices[0]), logit))
         if efficient_test:
             result = [np2tmp(_, tmpdir='.efficient_test') for _ in result]
 
@@ -217,17 +218,14 @@ def multi_gpu_test(model,
             # TODO: adapt samples_per_gpu > 1.
             # only samples_per_gpu=1 valid now
             result = dataset.pre_eval(result, indices=batch_indices)
-
         results.extend(result)
-
         if rank == 0:
             batch_size = len(result) * world_size
             for _ in range(batch_size):
                 prog_bar.update()
-
     # collect results from all ranks
     if gpu_collect:
         results = collect_results_gpu(results, len(dataset))
     else:
         results = collect_results_cpu(results, len(dataset), tmpdir)
-    return results
+    return results, ece_vals

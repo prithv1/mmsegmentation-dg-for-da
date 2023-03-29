@@ -133,9 +133,9 @@ data = dict(
         ]),
     test=dict(
         type= 'MapillaryDataset',
-        data_root= '/srv/datasets/mapillary/validation', 
-        img_dir= 'images',
-        ann_dir= 'labels',
+        data_root= '/srv/datasets/mapillary/validation',#/srv/share4/datasets/mapillary-mmseg
+        img_dir= 'images',#temp_img
+        ann_dir= 'labels',#temp_ann
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
